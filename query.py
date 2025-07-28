@@ -21,6 +21,9 @@ def create_user(email, password, expired_date, quota, is_trial):
     }
     return supabase.table("users").insert(data).execute()
 
+def login_user(email):
+    return supabase.table("users").select("*").eq("email", email).single().execute()
+
 # UPDATE QUOTA
 def update_quota(email, new_quota):
     return supabase.table("users").update({"quota": new_quota}).eq("email", email).execute()
