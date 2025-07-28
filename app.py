@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify, send_file, after_this_request
 from scraper import scrape_reviews
+from flask_cors import CORS
+from query import create_user, update_quota, delete_expired_users, get_user, get_users
+from datetime import date, timedelta
 import pandas as pd
 import json
 import os
@@ -7,6 +10,8 @@ import uuid
 import threading
 
 app = Flask(__name__)
+
+CORS(app) 
 
 TOKEN_FILE = "token_store.json"
 
@@ -21,10 +26,9 @@ def set_stored_token(new_token):
     with open(TOKEN_FILE, "w") as f:
         json.dump({"token": new_token}, f)
 
-@app.route('/api/update_token', methods=['POST'])
+@app.route('/api/update_token', methods=['GET'])
 def update_token():
-    data = request.get_json()
-    new_token = data.get("new_token")
+    new_token = request.args.get("newToken")
     if not new_token:
         return jsonify({"error": "new_token is required"}), 400
     set_stored_token(new_token)
@@ -76,6 +80,27 @@ def api_reviews():
         return send_file(filename, as_attachment=True)
 
     return df.to_dict(orient="records")
+
+#query --- start
+
+@app.route('/api/reviews', methods=['POST'])
+def api_create_user():
+    try:
+        data = request.get_json()
+
+        # Validasi input
+        required_fields = ["email", "password", "expired_date", "quota", "is_trial"]
+        if not all(field in data for field in required_fields):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        response = create_user(data["email"], data["password"], data["expired_date"], quota=5, is_trial=True)
+
+        return jsonify({"message": "User created", "data": response.data}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+#query --- end
 
 if __name__ == '__main__':
     app.run(debug=True)
