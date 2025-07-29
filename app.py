@@ -65,17 +65,16 @@ def api_reviews():
 
     # Proses scraping berdasarkan email user (jika ada)
     if user_email != 'empty':
-        print('Masukkan');
         user_response = get_user(email=user_email)
         if user_response.data:
             user_quota = user_response.data.get("quota", 0)
             user_trial = user_response.data.get("is_trial", True)
             if user_quota > 0:
-                new_quota = user_quota - 1
-                update_quota(email=user_email, new_quota=new_quota)
                 if user_trial == True and count > 100:
                     count = 100
                 reviews = scrape_reviews(app_id, count=count)
+                new_quota = user_quota - 1
+                update_quota(email=user_email, new_quota=new_quota)
             else:
                 return jsonify({"error": "Scrape quota empty, please top up quota first"}), 400
         else:
