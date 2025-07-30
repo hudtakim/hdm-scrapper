@@ -73,7 +73,7 @@ def api_reviews():
                 if user_trial == True and count > 100:
                     count = 100
                 reviews = scrape_reviews(app_id, count=count)
-                if not save_csv and not save_excel:
+                if save_csv or save_excel:
                     new_quota = user_quota - 1
                     update_quota(email=user_email, new_quota=new_quota)
             else:
